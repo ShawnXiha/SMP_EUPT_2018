@@ -12,12 +12,12 @@ y_train = train["标签"].values
 
 X_test = test["内容"].fillna("无").str.lower()
 
-tok=text.Tokenizer(num_words=max_features)
-tok.fit_on_texts(list(X_train)+list(X_test))
-X_train=tok.texts_to_sequences(X_train)
-X_test=tok.texts_to_sequences(X_test)
-x_train=sequence.pad_sequences(X_train,maxlen=maxlen)
-x_test=sequence.pad_sequences(X_test,maxlen=maxlen)
+tok = text.Tokenizer(num_words=max_features)
+tok.fit_on_texts(list(X_train) + list(X_test))
+X_train = tok.texts_to_sequences(X_train)
+X_test = tok.texts_to_sequences(X_test)
+x_train = sequence.pad_sequences(X_train, maxlen=maxlen)
+x_test = sequence.pad_sequences(X_test, maxlen=maxlen)
 embeddings_index = {}
 with open(EMBEDDING_FILE, encoding='utf8') as f:
     for line in f:
@@ -27,7 +27,7 @@ with open(EMBEDDING_FILE, encoding='utf8') as f:
         embeddings_index[word] = coefs
 
 word_index = tok.word_index
-#prepare embedding matrix
+# prepare embedding matrix
 num_words = min(max_features, len(word_index) + 1)
 embedding_matrix = np.zeros((num_words, embed_size))
 for word, i in word_index.items():
@@ -39,9 +39,7 @@ for word, i in word_index.items():
         embedding_matrix[i] = embedding_vector
 
 y_lookup, y_train = np.unique(y_train, return_inverse=True)
-# np.savez_compressed(data_npz, x_test=x_test, x_train=x_train, y_train=y_train,
-#                     y_lookup=y_lookup)
+np.savez_compressed(data_npz, x_test=x_test, x_train=x_train, y_train=y_train,
+                    y_lookup=y_lookup)
 
 np.savez_compressed(embed_npz, embedding_matrix)
-
-

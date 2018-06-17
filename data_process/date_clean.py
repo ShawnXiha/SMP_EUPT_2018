@@ -12,4 +12,3 @@ train_df['内容'] = train_df['内容'].apply(clean_content)
 train_df['内容'] = train_df['内容'].apply(clean_content)
 train_df.to_csv("../inputs/train.tsv", index=False, sep='\t')
 vali_df.to_csv("../inputs/vali.tsv", index=False, sep='\t')
-
