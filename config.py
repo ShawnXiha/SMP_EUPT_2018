@@ -1,5 +1,5 @@
-max_features = 100000
-maxlen = 900
+max_features = 200000
+maxlen = 1000
 embed_size = 300
 EMBEDDING_FILE = "../inputs/wiki.zh.vec"
 data_npz = "../inputs/data.npz"

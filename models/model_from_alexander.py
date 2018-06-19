@@ -32,7 +32,7 @@ class F1Evaluation(Callback):
             if score > self.max_score:
                 print(
                     "*** New High Score (previous: %.6f) \n" % self.max_score)
-                model.save_weights("best_weights.h5")
+                self.model.save_weights("best_weights.h5")
                 self.max_score = score
                 self.not_better_count = 0
             else:
