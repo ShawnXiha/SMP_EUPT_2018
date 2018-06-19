@@ -1,3 +1,8 @@
 # Created by .ignore support plugin (hsz.mobi)
 /jupyter/.ipynb_checkpoints/
 /inputs/
+*.h5
+*.csv
+*.tsv
+*.npy
+*.npz
