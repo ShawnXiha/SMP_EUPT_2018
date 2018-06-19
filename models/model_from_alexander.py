@@ -24,11 +24,11 @@ class F1Evaluation(Callback):
 
     def on_epoch_end(self, epoch, logs={}):
         if epoch % self.interval == 0:
-            y_pred = self.model.predict(self.X_val, verbose=1)
+            y_pred = self.model.predict(self.X_val, batch_size=1024, verbose=1)
 
             score = f1_score(self.y_val, np.argmax(y_pred, 1), average='macro')
             print("\n F1-score - epoch: %d - score: %.6f \n" % (
-            epoch + 1, score))
+                epoch + 1, score))
             if score > self.max_score:
                 print(
                     "*** New High Score (previous: %.6f) \n" % self.max_score)
@@ -39,7 +39,7 @@ class F1Evaluation(Callback):
                 self.not_better_count += 1
                 if self.not_better_count > 5:
                     print("Epoch %05d: early stopping, high score = %.6f" % (
-                    epoch, self.max_score))
+                        epoch, self.max_score))
                     self.model.stop_training = True
 
 
@@ -117,12 +117,12 @@ if __name__ == '__main__':
         model = get_model_ala(train_features, embedding_matrix)
 
         f1_val = F1Evaluation(validation_data=(
-        [kfold_X_valid, kfold_X_valid_features], kfold_y_test),
-                              interval=1)
+            [kfold_X_valid, kfold_X_valid_features], kfold_y_test),
+            interval=1)
 
         model.fit([kfold_X_train, kfold_X_features], kfold_y_train,
                   batch_size=512,
-                  epochs=20, verbose=1, callbacks=[f1_val])
+                  epochs=100, verbose=1, callbacks=[f1_val])
         gc.collect()
         model.load_weights("best_weights.h5")
 
