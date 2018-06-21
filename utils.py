@@ -1,8 +1,9 @@
 from keras.callbacks import Callback
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import f1_score
-
+from keras import backend as K
 import numpy as np
+
 
 class RocAucEvaluation(Callback):
     def __init__(self, validation_data=(), interval=1):
@@ -31,7 +32,7 @@ class F1Evaluation(Callback):
 
     def on_epoch_end(self, epoch, logs={}):
         if epoch % self.interval == 0:
-            y_pred = self.model.predict(self.X_val, batch_size=1024, verbose=1)
+            y_pred = self.model.predict(self.X_val, batch_size=512, verbose=1)
 
             score = f1_score(self.y_val, np.argmax(y_pred, 1), average='macro')
             print("\n F1-score - epoch: %d - score: %.6f \n" % (
@@ -44,7 +45,15 @@ class F1Evaluation(Callback):
                 self.not_better_count = 0
             else:
                 self.not_better_count += 1
-                if self.not_better_count > 5:
+                old_lr = float(K.get_value(self.model.optimizer.lr))
+                new_lr = old_lr * 0.9
+                if self.not_better_count > 3 or new_lr < 1e-5:
                     print("Epoch %05d: early stopping, high score = %.6f" % (
                         epoch, self.max_score))
                     self.model.stop_training = True
+                else:
+                    K.set_value(self.model.optimizer.lr, new_lr)
+
+
+
+

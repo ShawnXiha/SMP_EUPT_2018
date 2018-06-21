@@ -40,7 +40,7 @@ def inception(x, co, relu=True, norm=True):
 
 
 def getModelInception(maxlen, classes, max_features, emb_size, emb_matrix,
-                      emb_dropout=0.5, inception_dim=128, clipvalue=1, emb_trainable=False):
+                      emb_dropout=0.5, inception_dim=256, clipvalue=1, emb_trainable=False):
     x_input = Input(shape=(maxlen,))
 
     emb = Embedding(max_features, emb_size, weights=[emb_matrix],
@@ -49,11 +49,12 @@ def getModelInception(maxlen, classes, max_features, emb_size, emb_matrix,
 
     content_conv = inception(emb, inception_dim)
     content_conv = inception(content_conv, inception_dim)
+    content_conv = inception(content_conv, inception_dim)
     content_conv = MaxPooling1D(maxlen)(content_conv)
 
     fc = Sequential()
     fc.add(Flatten())
-    fc.add(Dense(32))
+    fc.add(Dense(128))
     fc.add(BatchNormalization())
     fc.add(Activation('relu'))
     fc.add(Dense(classes, activation='softmax'))
@@ -61,7 +62,7 @@ def getModelInception(maxlen, classes, max_features, emb_size, emb_matrix,
     outp = fc(content_conv)
     model = Model(inputs=x_input, outputs=outp)
 
-    adam = optimizers.adam(clipvalue=clipvalue)
+    adam = optimizers.adam(lr=5e-3, clipvalue=clipvalue)
     model.compile(loss='categorical_crossentropy',
                   optimizer=adam,
                   metrics=['accuracy'])
@@ -73,14 +74,17 @@ if __name__ == '__main__':
     import pandas as pd
     import numpy as np
     from keras import backend as K
-    from config import embed_npz, features_npz, data_npz
+    from config import embed_npz,  data_npz
     from sklearn.model_selection import KFold
     from keras.utils.np_utils import to_categorical
     from config import maxlen, max_features, embed_size
 
     test = pd.read_csv("../inputs/vali.tsv", sep='\t')
 
-    model_name = 'inception'
+    model_name = 'inception_big'
+    fold = 4
+    batch_size = 128
+    epochs = 25
     np.random.seed(233)
     embedding_matrix = np.load(embed_npz)['arr_0']
     data = np.load(data_npz)
@@ -89,7 +93,7 @@ if __name__ == '__main__':
     x_test = data['x_test']
     y_train = to_categorical(y_train, num_classes=None)
     y_pred = np.zeros((test.shape[0], 4))
-    kf = KFold(n_splits=10, shuffle=True, random_state=239)
+    kf = KFold(n_splits=fold, shuffle=True, random_state=239)
     for train_index, test_index in kf.split(x_train):
         kfold_y_train, kfold_y_test = y_train[train_index], y_train[test_index]
         kfold_X_train = x_train[train_index]
@@ -103,16 +107,16 @@ if __name__ == '__main__':
         f1_val = F1Evaluation(validation_data=(kfold_X_valid, kfold_y_test), interval=1)
 
         model.fit(kfold_X_train, kfold_y_train,
-                  batch_size=512,
-                  epochs=100, verbose=1, callbacks=[f1_val])
+                  batch_size=batch_size,
+                  epochs=epochs, verbose=1, callbacks=[f1_val])
         gc.collect()
         model.load_weights("best_weights.h5")
 
-        y_pred += model.predict(x_test, batch_size=1024,
-                                verbose=1) / 10
+        y_pred += model.predict(x_test, batch_size=batch_size*2,
+                                verbose=1) / fold
 
     my_dict = {0: '人类作者', 1: '机器作者', 2: '机器翻译', 3: '自动摘要'}
     y_p = np.argmax(y_pred, 1)
     test['标签'] = np.vectorize(my_dict.get)(y_p)
-    test.to_csv(f'../inputs/{model_name}_sub_bilistmcnn_10_cv.csv',
+    test.to_csv(f'../inputs/{model_name}_sub_bilistmcnn_{fold}_{batch_size}_{epochs}_cv.csv',
                 columns=['id', '标签'], header=False, index=False)

@@ -219,7 +219,7 @@ class Transformer:
         self.encoder = Encoder(d_model, d_inner_hid, n_head, d_k, d_v, layers,
                                dropout, \
                                word_emb=i_word_emb, pos_emb=pos_emb)
-
+        self.flatten = Flatten()
         self.encoder2label = Dense(d_out, activation='softmax')
 
     def get_pos_seq(self, x):
@@ -234,7 +234,7 @@ class Transformer:
 
         enc_output = self.encoder(src_seq, src_pos,
                                   active_layers=active_layers)
-
+        enc_output = self.flatten(enc_output)
         pred_p = self.encoder2label(enc_output)
 
         self.model = Model(inputs=src_seq, outputs=pred_p)

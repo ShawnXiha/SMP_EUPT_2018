@@ -12,8 +12,7 @@ y_train = train["标签"].values
 
 X_test = test["内容"].fillna("无").str.lower()
 
-tok = text.Tokenizer(num_words=max_features,
-                     filters='!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n+——！，。？、~@#￥%……&*（）‘’”“：《》=【】；`')
+tok = text.Tokenizer(num_words=max_features)
 tok.fit_on_texts(list(X_train) + list(X_test))
 X_train = tok.texts_to_sequences(X_train)
 X_test = tok.texts_to_sequences(X_test)

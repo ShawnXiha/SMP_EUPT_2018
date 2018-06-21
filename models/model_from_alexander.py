@@ -43,7 +43,7 @@ class F1Evaluation(Callback):
                     self.model.stop_training = True
 
 
-def get_model_ala(features_in, embedding_matrix, clipvalue=1., num_filters=40,
+def get_model_ala(features_in, embedding_matrix, clipvalue=1., num_filters=64,
                   dropout=0.5, embed_size=300):
     features_input = Input(shape=(features_in.shape[1],))
     inp = Input(shape=(maxlen,))
@@ -91,7 +91,7 @@ if __name__ == '__main__':
 
     test = pd.read_csv("../inputs/vali.tsv", sep='\t')
 
-    model_name = 'alexander'
+    model_name = 'alexander_big'
     np.random.seed(233)
     embedding_matrix = np.load(embed_npz)['arr_0']
     features = np.load(features_npz)
@@ -121,7 +121,7 @@ if __name__ == '__main__':
             interval=1)
 
         model.fit([kfold_X_train, kfold_X_features], kfold_y_train,
-                  batch_size=512,
+                  batch_size=256,
                   epochs=100, verbose=1, callbacks=[f1_val])
         gc.collect()
         model.load_weights("best_weights.h5")
