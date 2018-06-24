@@ -82,8 +82,8 @@ if __name__ == '__main__':
     test = pd.read_csv("../inputs/vali.tsv", sep='\t')
 
     model_name = 'inception_big'
-    fold = 4
-    batch_size = 128
+    fold = 5
+    batch_size = 200
     epochs = 25
     np.random.seed(233)
     embedding_matrix = np.load(embed_npz)['arr_0']
@@ -112,7 +112,7 @@ if __name__ == '__main__':
         gc.collect()
         model.load_weights("best_weights.h5")
 
-        y_pred += model.predict(x_test, batch_size=batch_size*2,
+        y_pred += model.predict(x_test, batch_size=512,
                                 verbose=1) / fold
 
     my_dict = {0: '人类作者', 1: '机器作者', 2: '机器翻译', 3: '自动摘要'}
