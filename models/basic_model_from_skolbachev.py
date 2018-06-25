@@ -133,6 +133,7 @@ def getModel3(input_shape, classes, num_words, emb_size, emb_matrix,
     x_output = Dense(classes, activation='softmax')(x)
     return Model(inputs=x_input, outputs=x_output)
 
+
 if __name__ == '__main__':
     import gc
     import pandas as pd
@@ -144,18 +145,20 @@ if __name__ == '__main__':
     from utils import F1Evaluation
     from sklearn.model_selection import train_test_split
     from keras.optimizers import Adam
+
     my_dict = {0: '人类作者', 1: '机器作者', 2: '机器翻译', 3: '自动摘要'}
     test = pd.read_csv("../inputs/vali.tsv", sep='\t')
 
-
     embedding_matrix = np.load(embed_npz)['arr_0']
-    input_shape, classes, num_words, emb_size, emb_matrix = maxlen, 4,  max_features, 300, embedding_matrix
+    input_shape, classes, num_words, emb_size, emb_matrix = maxlen, 4, max_features, 300, embedding_matrix
     data = np.load(data_npz)
     x_train = data['x_train']
     y_train = data['y_train']
     x_test = data['x_test']
     y_train = to_categorical(y_train, num_classes=None)
-    X_tra, X_val, y_tra, y_val = train_test_split(x_train, y_train, train_size=0.9, random_state=233)
+    X_tra, X_val, y_tra, y_val = train_test_split(x_train, y_train,
+                                                  train_size=0.9,
+                                                  random_state=233)
     batch_size = 256
     epochs = 100
     for i, m in enumerate([getModel0, getModel1, getModel2, getModel3]):
@@ -164,15 +167,17 @@ if __name__ == '__main__':
         gc.collect()
         K.clear_session()
         model = m(input_shape, classes, num_words, emb_size, emb_matrix)
-        model.compile(loss='categorical_crossentropy',optimizer=Adam(),metrics=['accuracy'])
+        model.compile(loss='categorical_crossentropy', optimizer=Adam(),
+                      metrics=['accuracy'])
         f1_val = F1Evaluation(validation_data=(X_val, y_val), interval=1)
-        model.fit(X_tra, y_tra, batch_size=batch_size, epochs=epochs, verbose=1, callbacks=[f1_val])
+        model.fit(X_tra, y_tra, batch_size=batch_size, epochs=epochs,
+                  verbose=1, callbacks=[f1_val])
         gc.collect()
         model.load_weights("best_weights.h5")
         y_pred = model.predict(x_test, batch_size=batch_size, verbose=1)
 
         y_p = np.argmax(y_pred, 1)
         test['标签'] = np.vectorize(my_dict.get)(y_p)
-        test.to_csv(f'../inputs/{model_name}_withoutcv_{batch_size}_{epochs}.csv',
-                    columns=['id', '标签'], header=False, index=False)
-
+        test.to_csv(
+            f'../inputs/{model_name}_withoutcv_{batch_size}_{epochs}.csv',
+            columns=['id', '标签'], header=False, index=False)

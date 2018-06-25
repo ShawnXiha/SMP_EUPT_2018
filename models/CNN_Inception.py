@@ -40,7 +40,8 @@ def inception(x, co, relu=True, norm=True):
 
 
 def getModelInception(maxlen, classes, max_features, emb_size, emb_matrix,
-                      emb_dropout=0.5, inception_dim=256, clipvalue=1, emb_trainable=False):
+                      emb_dropout=0.5, inception_dim=256, clipvalue=1,
+                      emb_trainable=False):
     x_input = Input(shape=(maxlen,))
 
     emb = Embedding(max_features, emb_size, weights=[emb_matrix],
@@ -74,7 +75,7 @@ if __name__ == '__main__':
     import pandas as pd
     import numpy as np
     from keras import backend as K
-    from config import embed_npz,  data_npz
+    from config import embed_npz, data_npz
     from sklearn.model_selection import KFold
     from keras.utils.np_utils import to_categorical
     from config import maxlen, max_features, embed_size
@@ -102,9 +103,11 @@ if __name__ == '__main__':
         gc.collect()
         K.clear_session()
 
-        model = getModelInception(maxlen, 4, max_features, embed_size, embedding_matrix)
+        model = getModelInception(maxlen, 4, max_features, embed_size,
+                                  embedding_matrix)
 
-        f1_val = F1Evaluation(validation_data=(kfold_X_valid, kfold_y_test), interval=1)
+        f1_val = F1Evaluation(validation_data=(kfold_X_valid, kfold_y_test),
+                              interval=1)
 
         model.fit(kfold_X_train, kfold_y_train,
                   batch_size=batch_size,
@@ -118,5 +121,6 @@ if __name__ == '__main__':
     my_dict = {0: '人类作者', 1: '机器作者', 2: '机器翻译', 3: '自动摘要'}
     y_p = np.argmax(y_pred, 1)
     test['标签'] = np.vectorize(my_dict.get)(y_p)
-    test.to_csv(f'../inputs/{model_name}_sub_bilistmcnn_{fold}_{batch_size}_{epochs}_cv.csv',
-                columns=['id', '标签'], header=False, index=False)
+    test.to_csv(
+        f'../inputs/{model_name}_sub_bilistmcnn_{fold}_{batch_size}_{epochs}_cv.csv',
+        columns=['id', '标签'], header=False, index=False)
